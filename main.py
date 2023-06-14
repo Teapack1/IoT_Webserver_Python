@@ -1,11 +1,13 @@
 from flask import Flask, render_template, request, jsonify
 from flask_bootstrap import Bootstrap
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import and_
 from datetime import datetime
 import plotly
 import plotly.graph_objs as go
 import numpy as np
 import json
+
 
 
 app = Flask(__name__)
@@ -21,7 +23,14 @@ class Device(db.Model):
     value1 = db.Column(db.Float, nullable=False)
     value2 = db.Column(db.Float)
     value3 = db.Column(db.Float)
+    unit1 = db.Column(db.String(10))
+    unit2 = db.Column(db.String(10))
+    unit3 = db.Column(db.String(10))
 
+
+# from main import app, db, Device
+# app.app_context().push()
+# db.create_all()
 
 class Sensor:
     def __init__(self, id, name):
@@ -29,11 +38,12 @@ class Sensor:
         self.name = name
         self.time = None
         self.date = None
-        self.values = {}  # store sensor values in a dictionary
+        self.values = [None, None, None]  # store sensor values in a dictionary
+        self.units = [None, None, None]  # store sensor units in a dictionary
 
-    def update_values(self, data):
-        for key, value in data.items():
-            self.values[key] = value
+    def update_values(self, data, units):
+        self.values = [round(int(d),2) for d in data]
+        self.units= units
 
 
 # Define devices---------------------------------------------------------------------------------
@@ -43,7 +53,8 @@ SENSORS = [
     Sensor("Elektroměr", "Byt dole"),
     Sensor("Teploměr", "Teplota, vlhkost byt"),
     Sensor("Stmívač", "LED pásek, kůlna"),
-    Sensor("Elektroměr", "Byt nahoře")
+    Sensor("Elektroměr", "Byt nahoře"),
+    Sensor("t1", "Teploměr Kůlna")      # for testing purposes - aktivní senzor
 ]
 # ---------------------------------------------------------------------------------------------
 
@@ -51,8 +62,10 @@ SENSORS = [
 @app.route('/')
 def home():
 
-    x = np.linspace(0, 10, 1000)
-    y = np.sin(x)
+    temperature_1 = Device.query.filter_by(sensor_id="t1").all()
+
+    x = [record.time for record in temperature_1]
+    y = [record.value1 for record in temperature_1]
 
     # Create a trace
     trace = go.Scatter(
@@ -62,8 +75,9 @@ def home():
     data = [trace]
     graphJSON = json.dumps(data, cls=plotly.utils.PlotlyJSONEncoder)
 
+    thermo = [sensor for sensor in SENSORS if sensor.id.startswith('t')]
 
-    return render_template('index.html', devices=SENSORS, graphJSON=graphJSON)
+    return render_template('index.html', t=thermo, graphJSON=graphJSON)
 
 
 # dictionary to be sent:
@@ -75,30 +89,38 @@ def home():
 #   }
 # }
 
-@app.route('/postplain', methods=['POST'])
+@app.route('/postplain/', methods=['POST'])
 def post_plain():
     data = request.get_json()
 
     if not data:
         return jsonify({'message': 'No input data provided'}), 400
 
-    sensor_id = data.get('id')
-    sensor_value = data.get('values')
+    device_id = data.get('id')
+    device_values = data.get('values')
+    device_units = data.get('units')
 
-    if sensor_value and sensor_id:
+    if device_values and device_id:
         for sensor in SENSORS:
-            if sensor.id == sensor_id:
-                sensor.update_values(sensor_value)
-                print(f'ID: {sensor_id}, Value: {sensor_value}')
+            if sensor.id == device_id:
+                sensor.update_values(device_values, device_units)
+                print(f'ID: {device_id}, Value: {device_values}')
 
 # Add to database
                 device = Device(
-                    sensor_id=sensor_id,
+                    sensor_id=device_id,
                     name=sensor.name,
                     time=datetime.now(),
+
+                    value1=sensor.values[0],
+                    value2=sensor.values[1],
+                    #value3=sensor.values[2],
+
+                    unit1=sensor.units[0],
+                    unit2=sensor.units[1],
+                    #unit3=sensor.units[2]
                 )
-                for key, value in sensor_value.items():
-                    setattr(device, key, value)
+
                 db.session.add(device)
                 db.session.commit()
 

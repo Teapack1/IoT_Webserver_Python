@@ -50,14 +50,7 @@
 											</tr>
 										  </thead>
 											<tbody>
-												{% for device in devices %}
-													<tr>
-														<td>{{ device.id }}</td>
-														<td>{{ device.name }}</td>
-														<td>{{ device.value }}</td>
-														<td>{{ device.time }}</td>
-													</tr>
-												{% endfor %}
+
 											</tbody>
 										</table>
 									</div>
@@ -70,7 +63,7 @@
 								<li><a href="#elektrina">Elektřina</a></li>
 								<li><a href="#work">Ovládání</a></li>
 								<li><a href="#about">Kamery</a></li>
-								<li><a href="#prehled">Přehled</a></li>
+								<li><a href="#prehled">Zařízení</a></li>
 
 							</ul>
 						</nav>
@@ -109,67 +102,28 @@
 								<p>Lorem ipsum dolor sit amet, consectetur et adipiscing elit. Praesent eleifend dignissim arcu, at eleifend sapien imperdiet ac. Aliquam erat volutpat. Praesent urna nisi, fringila lorem et vehicula lacinia quam. Integer sollicitudin mauris nec lorem luctus ultrices. Aliquam libero et malesuada fames ac ante ipsum primis in faucibus. Cras viverra ligula sit amet ex mollis mattis lorem ipsum dolor sit amet.</p>
 							</article>
 
-						<!-- Prehled -->
+						<!-- Zařízení -->
 							<article id="prehled">
 								<h2 class="major">Přehled systému</h2>
 									<div class="container">
 
-										<!-- Power Meters -->
-										<h4 class="nadpis-sekce">Elektroměry</h4>
+
+										<!-- Teploměry -->
+										<h4 class="nadpis-sekce">Teploměry</h4>
 										<div class="row">
 											<!-- Placeholder for Power Meters Chart -->
+											{% for thermo in t %}
 											<div id="power-chart" class="col-sm-12"></div>
 											<div class="col-sm-4">
 												<div class="card">
 													<div class="card-body">
-														<h5 class="card-title">Power Meter 1</h5>
-														<p class="card-text">Current reading: <!-- data here --> </p>
+														<h5 class="card-title">{{ thermo.name }}</h5>
+														<p class="card-text">Aktuální hodnoty: {{ thermo.values }} {{ thermo.units }} </p>
 													</div>
 												</div>
 											</div>
-											<!-- Repeat above for other power meters -->
+											{% endfor %}
 										</div>
-
-										<!-- Temp/Humidity Sensors -->
-										<h4 class="nadpis-sekce">Teplota/vlhkost</h4>
-										<div class="row">
-											<div id="temp-humidity-chart" class="col-sm-12"></div>
-											<div class="col-sm-4">
-												<div class="card">
-													<div class="card-body">
-														<h5 class="card-title">Sensor 1</h5>
-														<p class="card-text">Current reading: <!-- data here --> </p>
-													</div>
-												</div>
-											</div>
-										</div>
-
-										<!-- Dimmers -->
-										<h4 class="nadpis-sekce">Světla</h4>
-										<div class="row">
-											<div id="dimmers" class="col-sm-12"></div>
-											<!-- Dimmer 1 -->
-											<div class="col-sm-4">
-												<div class="card">
-													<div class="card-body">
-														<h5 class="card-title">Dimmer 1</h5>
-														<p class="card-text">Current reading: <!-- data here --> </p>
-													</div>
-												</div>
-											</div>
-											<!-- Dimmer 2 -->
-											<div class="col-sm-4">
-												<div class="card">
-													<div class="card-body">
-														<h5 class="card-title">Dimmer 2</h5>
-														<p class="card-text">Current reading: <!-- data here --> </p>
-													</div>
-												</div>
-											</div>
-
-
-										</div>
-
 									</div>
 							</article>
 
