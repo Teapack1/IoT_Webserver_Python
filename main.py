@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, Response
 from flask_bootstrap import Bootstrap
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import and_
@@ -7,6 +7,7 @@ import plotly
 import plotly.graph_objs as go
 import numpy as np
 import json
+from cam import Camera
 
 
 
@@ -53,15 +54,27 @@ SENSORS = [
     Sensor("Elektroměr", "Byt dole"),
     Sensor("Teploměr", "Teplota, vlhkost byt"),
     Sensor("Stmívač", "LED pásek, kůlna"),
-    Sensor("Elektroměr", "Byt nahoře"),
+    Sensor("e1", "Byt nahoře"),
     Sensor("t1", "Teploměr Kůlna")      # for testing purposes - aktivní senzor
 ]
+
+CAMERAS = [
+    Camera("c1", "Garáže", 0)
+
+]
 # ---------------------------------------------------------------------------------------------
+
+from flask import Response
+
+for index, camera in enumerate(CAMERAS):
+    app.add_url_rule('/video_feed/' + camera.id,
+                     'video_feed_' + camera.id,
+                     (lambda camera: lambda: Response(camera.gen_frames(), mimetype='multipart/x-mixed-replace; boundary=frame'))(camera))
+
 
 
 @app.route('/')
 def home():
-
     temperature_1 = Device.query.filter_by(sensor_id="t1").all()
 
     x = [record.time for record in temperature_1]
@@ -72,22 +85,29 @@ def home():
         x = x,
         y = y
     )
+    layout = go.Layout(
+        autosize = True,
+        title = 'Teplota kůlna',
+        margin=dict(
+            l=50,
+            r=50,
+            b=100,
+            t=100,
+            pad=4
+        ),
+        paper_bgcolor='#FFFFFF',
+        plot_bgcolor='#FFFFFF'
+    )
+
     data = [trace]
-    graphJSON = json.dumps(data, cls=plotly.utils.PlotlyJSONEncoder)
+    figure = go.Figure(data=data, layout=layout)
+    graphJSON = json.dumps(figure, cls=plotly.utils.PlotlyJSONEncoder)
 
     thermo = [sensor for sensor in SENSORS if sensor.id.startswith('t')]
+    ele = [sensor for sensor in SENSORS if sensor.id.startswith('e')]
 
-    return render_template('index.html', t=thermo, graphJSON=graphJSON)
+    return render_template('index.html', t=thermo, e=ele, graphJSON=graphJSON, cameras=CAMERAS)
 
-
-# dictionary to be sent:
-# {
-#   "id": "sensor1",
-#   "values": {
-#     "temperature": 23.5,
-#     "humidity": 50.2
-#   }
-# }
 
 @app.route('/postplain/', methods=['POST'])
 def post_plain():
@@ -128,6 +148,7 @@ def post_plain():
         return jsonify({'message': 'Success!'}), 200
     else:
         return jsonify({'message': 'Missing data'}), 400
+
 
 
 if __name__ == '__main__':
