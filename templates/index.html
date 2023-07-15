@@ -33,29 +33,6 @@
 							<div class="inner">
 								<h1>Domovní Informační Systém</h1>
 
-									<p>
-									  <button class="btn btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#collapseExample" aria-expanded="false" aria-controls="collapseExample">
-										Aktivní Zařízení ({{ devices|length }})
-									  </button>
-									</p>
-									<div class="collapse" id="collapseExample">
-									<div class="card card-body">
-										<table class="table table-hover" id="sensorsTable">
-										  <thead>
-											<tr>
-											  <th scope="col">ID</th>
-											  <th scope="col">Sensor Name</th>
-											  <th scope="col">Value</th>
-												<th scope="col">Time</th>
-											</tr>
-										  </thead>
-											<tbody>
-
-											</tbody>
-										</table>
-									</div>
-								</div>
-
 							</div>
 						</div>
 						<nav>
@@ -75,75 +52,82 @@
 						<!-- Elektroměr -->
 							<article id="elektrina">
 								<h2 class="major">Elektřina</h2>
-										<h5>Graf spotřeby v dolním bytě</h5>
-											<div id="myDiv" class="graphs">
+										<h5>Graf spotřeby ve spodním bytě</h5>
+											<div id="graph_1" class="graphs">
 											  <!-- Plotly chart will be drawn inside this div -->
 											</div>
 											<script>
-											  var graphs = {{graphJSON | safe}};
-											  Plotly.newPlot('myDiv',graphs.data,graphs.layout, {responsive: true});
+											  var graphs = {{graphJSON_1 | safe}};
+											  Plotly.newPlot('graph_1',graphs.data,graphs.layout, {responsive: true});
 											</script>
 
-										<h5>Graf spotřeby v horním bytě bytě</h5>
-											<div id="myDiv2" class="graphs">
+										<h5>Graf spotřeby v horním bytě</h5>
+											<div id="graph_2" class="graphs">
 											  <!-- Plotly chart will be drawn inside this div -->
 											</div>
 											<script>
-											  var graphs = {{graphJSON | safe}};
-											  Plotly.newPlot('myDiv2',graphs.data,graphs.layout, {responsive: true});
+											  var graphs = {{graphJSON_2 | safe}};
+											  Plotly.newPlot('graph_2',graphs.data,graphs.layout, {responsive: true});
 											</script>
+
+										<h5>Graf spotřeby čerpadla</h5>
+											<div id="graph_3" class="graphs">
+											  <!-- Plotly chart will be drawn inside this div -->
+											</div>
+											<script>
+											  var graphs = {{graphJSON_3 | safe}};
+											  Plotly.newPlot('graph_3',graphs.data,graphs.layout, {responsive: true});
+											</script>
+
 							</article>
 
 						<!-- Ovladani -->
 							<article id="ovl">
-								<h2 class="major">Ovládání</h2>
+								<h2 class="major">Světla</h2>
 								<div class="container">
 
 
-  <div class="row">
-    <!-- Lighting Control Section -->
-	            <h3 class="card-title">Lighting</h3>
-    <div class="col-sm-4">
-      <div class="card">
-        <div class="card-body">
+								  <div class="row">
+									<!-- Lighting Control Section -->
+												<h3 class="card-title">Lighting</h3>
+									<div class="col-sm-4">
+									  <div class="card">
+										<div class="card-body">
 
-          <!-- Light Dimmer Sliders -->
-    <div class="slidecontainer">
-        <p>Light 1: <input type="range" min="1" max="100" class="slider" id="light1"></p>
+										  <!-- Light Dimmer Sliders -->
+									<div class="slidecontainer">
+										<p>Light 1: <input type="range" min="1" max="100" class="slider" id="light1"></p>
 
-    </div>
-          <!-- ... repeat for other lights ... -->
-
-
-          <!-- Light Control Buttons -->
-
-		<div class="custom-control custom-switch">
-  <input type="checkbox" class="custom-control-input" id="customSwitch1">
-  <label class="custom-control-label" for="customSwitch1" id="switchLabel">Off</label>
-</div>
-
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-<script>
-$(document).ready(function(){
-  $("#customSwitch1").change(function(){
-    if(this.checked) {
-      $("#switchLabel").text("On");
-    } else {
-      $("#switchLabel").text("Off");
-    }
-  });
-});
-</script>
+									</div>
+										  <!-- ... repeat for other lights ... -->
 
 
+										  <!-- Light Control Buttons -->
 
-        </div>
-      </div>
-    </div>
+										<div class="custom-control custom-switch">
+								  <input type="checkbox" class="custom-control-input" id="customSwitch1">
+								  <label class="custom-control-label" for="customSwitch1" id="switchLabel">Off</label>
+								</div>
 
-    <!-- You can add more control sections for Cameras and Others here. -->
-  </div>
-</div>
+								<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+								<script>
+								$(document).ready(function(){
+								  $("#customSwitch1").change(function(){
+									if(this.checked) {
+									  $("#switchLabel").text("On");
+									} else {
+									  $("#switchLabel").text("Off");
+									}
+								  });
+								});
+								</script>
+										</div>
+									  </div>
+									</div>
+
+									<!-- You can add more control sections for Cameras and Others here. -->
+								  </div>
+								</div>
 
 
 							</article>

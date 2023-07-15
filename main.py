@@ -1,15 +1,10 @@
 from flask import Flask, render_template, request, jsonify, Response
 from flask_bootstrap import Bootstrap
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import and_
 from datetime import datetime
-import plotly
-import plotly.graph_objs as go
-import numpy as np
 import json
-from cam import Camera
-
-
+import plotly
+from cam import Camera, Sensor
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///devices.db'
@@ -24,95 +19,68 @@ class Device(db.Model):
     value1 = db.Column(db.Float, nullable=False)
     value2 = db.Column(db.Float)
     value3 = db.Column(db.Float)
+    value4 = db.Column(db.Float)
+    value5 = db.Column(db.Float)
+    value6 = db.Column(db.Float)
     unit1 = db.Column(db.String(10))
     unit2 = db.Column(db.String(10))
     unit3 = db.Column(db.String(10))
+    unit4 = db.Column(db.String(10))
+    unit5 = db.Column(db.String(10))
+    unit6 = db.Column(db.String(10))
 
 
 # from main import app, db, Device
 # app.app_context().push()
 # db.create_all()
 
-class Sensor:
-    def __init__(self, id, name):
-        self.id = id
-        self.name = name
-        self.time = None
-        self.date = None
-        self.values = [None, None, None]  # store sensor values in a dictionary
-        self.units = [None, None, None]  # store sensor units in a dictionary
-
-    def update_values(self, data, units):
-        self.values = [round(int(d),2) for d in data]
-        self.units= units
-
 
 # Define devices---------------------------------------------------------------------------------
 SENSORS = [
-    Sensor("Teploměr", "Teplota, vlhkost kůlna"),
-    Sensor("Stmívač", "Lustr kůlna"),
-    Sensor("Elektroměr", "Byt dole"),
-    Sensor("Teploměr", "Teplota, vlhkost byt"),
-    Sensor("Stmívač", "LED pásek, kůlna"),
-    Sensor("e1", "Byt nahoře"),
-    Sensor("t1", "Teploměr Kůlna")      # for testing purposes - aktivní senzor
+    Sensor("e1", "elektro spodní byt"),
+    Sensor("e2", "elektro horní byt"),
+    Sensor("e3", "elektro čerpadlo"),
 ]
 
 CAMERAS = [
-    Camera("c1", "Garáže", 0)
-
+#    Camera(id="c1", name="Garáže", rtsp='rtsp://169.254.0.99:554/live.sdp')
 ]
+
+
 # ---------------------------------------------------------------------------------------------
-
-from flask import Response
-
 for index, camera in enumerate(CAMERAS):
     app.add_url_rule('/video_feed/' + camera.id,
                      'video_feed_' + camera.id,
                      (lambda camera: lambda: Response(camera.gen_frames(), mimetype='multipart/x-mixed-replace; boundary=frame'))(camera))
 
 
-
 @app.route('/')
 def home():
-    temperature_1 = Device.query.filter_by(sensor_id="t1").all()
 
-    x = [record.time for record in temperature_1]
-    y = [record.value1 for record in temperature_1]
+    fig1 = Sensor.find(SENSORS, "e1").plot(Device)
+    fig1.update_layout(
+        title='Spotřeba elektřiny spodní byt')
+    graphJSON_1 = json.dumps(fig1, cls=plotly.utils.PlotlyJSONEncoder)
+    fig2 = Sensor.find(SENSORS, "e2").plot(Device)
+    fig2.update_layout(
+        title='Spotřeba elektřiny horní byt')
+    graphJSON_2 = json.dumps(fig2, cls=plotly.utils.PlotlyJSONEncoder)
+    fig3 = Sensor.find(SENSORS, "e3").plot(Device)
+    fig3.update_layout(
+        title='Spotřeba elektřiny čerpadlo')
+    graphJSON_3 = json.dumps(fig3, cls=plotly.utils.PlotlyJSONEncoder)
 
-    # Create a trace
-    trace = go.Scatter(
-        x = x,
-        y = y
-    )
-    layout = go.Layout(
-        autosize = True,
-        title = 'Teplota kůlna',
-        margin=dict(
-            l=50,
-            r=50,
-            b=100,
-            t=100,
-            pad=4
-        ),
-        paper_bgcolor='#FFFFFF',
-        plot_bgcolor='#FFFFFF'
-    )
-
-    data = [trace]
-    figure = go.Figure(data=data, layout=layout)
-    graphJSON = json.dumps(figure, cls=plotly.utils.PlotlyJSONEncoder)
 
     thermo = [sensor for sensor in SENSORS if sensor.id.startswith('t')]
     ele = [sensor for sensor in SENSORS if sensor.id.startswith('e')]
 
-    return render_template('index.html', t=thermo, e=ele, graphJSON=graphJSON, cameras=CAMERAS)
+    return render_template('index.html', t=thermo, e=ele, graphJSON_1=graphJSON_1, graphJSON_2=graphJSON_2, graphJSON_3=graphJSON_3, cameras=CAMERAS)
 
 
 @app.route('/postplain/', methods=['POST'])
 def post_plain():
     data = request.get_json()
-
+    print(data)
     if not data:
         return jsonify({'message': 'No input data provided'}), 400
 
@@ -120,31 +88,26 @@ def post_plain():
     device_values = data.get('values')
     device_units = data.get('units')
 
-    if device_values and device_id:
-        for sensor in SENSORS:
-            if sensor.id == device_id:
-                sensor.update_values(device_values, device_units)
-                print(f'ID: {device_id}, Value: {device_values}')
+
+    if device_values[0] and device_id:
+        sensor = Sensor.find(SENSORS, device_id)
+        sensor.update_values(device_values, device_units)
 
 # Add to database
-                device = Device(
-                    sensor_id=device_id,
-                    name=sensor.name,
-                    time=datetime.now(),
+        device = Device(
+            sensor_id=device_id,
+            name=sensor.name,
+            time=sensor.time,
+            )
 
-                    value1=sensor.values[0],
-                    value2=sensor.values[1],
-                    #value3=sensor.values[2],
+        for i in range(len(sensor.values)):
+            setattr(device, f"value{i + 1}", sensor.values[i])
+        for i in range(len(sensor.units)):
+            setattr(device, f"unit{i + 1}", sensor.units[i])
 
-                    unit1=sensor.units[0],
-                    unit2=sensor.units[1],
-                    #unit3=sensor.units[2]
-                )
+        db.session.add(device)
+        db.session.commit()
 
-                db.session.add(device)
-                db.session.commit()
-
-                break
         return jsonify({'message': 'Success!'}), 200
     else:
         return jsonify({'message': 'Missing data'}), 400
