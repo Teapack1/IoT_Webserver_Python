@@ -3,8 +3,11 @@ from flask_bootstrap import Bootstrap
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 import json
-import plotly
+import plotly 
+import requests
 from cam import Camera, Sensor
+
+from flask import Flask, render_template, jsonify
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///devices.db'
@@ -46,6 +49,9 @@ CAMERAS = [
 #    Camera(id="c1", name="Garáže", rtsp='rtsp://169.254.0.99:554/live.sdp')
 ]
 
+LIGHTING_DATA = {
+    "intensity_01": 100,
+}
 
 # ---------------------------------------------------------------------------------------------
 for index, camera in enumerate(CAMERAS):
@@ -54,6 +60,7 @@ for index, camera in enumerate(CAMERAS):
                      (lambda camera: lambda: Response(camera.gen_frames(), mimetype='multipart/x-mixed-replace; boundary=frame'))(camera))
 
 
+        
 @app.route('/')
 def home():
 
@@ -75,6 +82,32 @@ def home():
     ele = [sensor for sensor in SENSORS if sensor.id.startswith('e')]
 
     return render_template('index.html', t=thermo, e=ele, graphJSON_1=graphJSON_1, graphJSON_2=graphJSON_2, graphJSON_3=graphJSON_3, cameras=CAMERAS)
+
+
+@app.route('/lighting-data/<light_id>', methods=['POST', 'GET'])
+def receive_data(light_id):
+    global LIGHTING_DATA
+    print(LIGHTING_DATA)
+
+    try:
+        if request.method == 'POST':
+            intensity_value = request.json.get('value')
+            if intensity_value is None:
+                return jsonify({"error": "Value not provided"}), 400
+
+            LIGHTING_DATA[light_id] = intensity_value
+
+            response = requests.post(f"http://127.0.0.1:1880/{light_id}", json={"value": intensity_value}, timeout=1)
+            response.raise_for_status()
+
+            return jsonify({"value": intensity_value}), 200
+        
+        elif request.method == 'GET':
+            intensity_value = LIGHTING_DATA.get(light_id, 0)
+            return jsonify({"value": intensity_value}), 200
+    
+    except requests.RequestException as e:
+        return jsonify({"error": str(e)}), 500
 
 
 @app.route('/postplain/', methods=['POST'])
@@ -116,4 +149,3 @@ def post_plain():
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
-

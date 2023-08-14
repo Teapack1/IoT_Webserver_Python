@@ -16,9 +16,11 @@
 		<link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
         <noscript><link rel="stylesheet" href="{{ url_for('static', filename='css/noscript.css') }}" /></noscript>
 		<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
-
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.js" ></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.0/jquery.min.js" ></script>
 
 	</head>
+
 	<body class="is-preload">
 
 		<!-- Wrapper -->
@@ -88,44 +90,155 @@
 
 
 								  <div class="row">
-									<!-- Lighting Control Section -->
-												<h3 class="card-title">Lighting</h3>
+											<h3 class="card-title">Kůlna</h3>
+<!-- Light 1 -->
+<div class="col-sm-4">
+    <div class="card">
+        <div class="card-body">
+            <div class="light-switch">
+                <input type="checkbox" class="btn-check light-toggle" id="light1-toggle" data-light="light1" onchange="toggleBrightness(this)">
+                <label class="btn btn-outline-success" for="light1-toggle">kůlna lustr</label><br>
+                <input type="range" min="0" max="254" class="slider light-slider" id="light1-slider" data-light="light1">
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Light 2 -->
+<div class="col-sm-4">
+    <div class="card">
+        <div class="card-body">
+            <div class="light-switch">
+                <input type="checkbox" class="btn-check light-toggle" id="light2-toggle" data-light="light2" onchange="toggleBrightness(this)">
+                <label class="btn btn-outline-success" for="light2-toggle">kůlna trámky</label><br>
+                <input type="range" min="0" max="254" class="slider light-slider" id="light2-slider" data-light="light2">
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Light 3 -->
+<div class="col-sm-4">
+    <div class="card">
+        <div class="card-body">
+            <div class="light-switch">
+                <input type="checkbox" class="btn-check light-toggle" id="light3-toggle" data-light="light3" onchange="toggleBrightness(this)">
+                <label class="btn btn-outline-success" for="light3-toggle">kůlna pásek</label><br>
+                <input type="range" min="0" max="254" class="slider light-slider" id="light3-slider" data-light="light3">
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function toggleBrightness(checkbox) {
+        let slider = $(checkbox).siblings('.light-slider')[0];
+        if (checkbox.checked) {
+            slider.value = 255;
+        } else {
+            slider.value = 0;
+        }
+        saveSliderValue(slider);
+    }
+
+    function updateLightingValue(slider) {
+        let lightId = $(slider).data('light');
+        $.get(`/lighting-data/${lightId}`, function(data) {
+            $(slider).val(data.value);
+        });
+    }
+
+    function saveSliderValue(slider) {
+        let lightId = $(slider).data('light');
+        let checkbox = $(slider).siblings('.light-toggle')[0];
+        if (slider.value > 10) {
+            checkbox.checked = true;
+        } else {
+            checkbox.checked = false;
+        }
+        $.ajax({
+            url: `/lighting-data/${lightId}`,
+            type: "POST",
+            contentType: "application/json",
+            data: JSON.stringify({ value: slider.value }),
+        });
+    }
+
+    $(document).ready(function() {
+        $(".light-slider").on("change", function() {
+            saveSliderValue(this);
+        });
+
+        setInterval(function() {
+            $(".light-slider").each(function() {
+                updateLightingValue(this);
+            });
+        }, 5000);
+    });
+</script>
+
+									<!--	
 									<div class="col-sm-4">
 									  <div class="card">
 										<div class="card-body">
-
-										  <!-- Light Dimmer Sliders -->
-									<div class="slidecontainer">
-										<p>Light 1: <input type="range" min="1" max="100" class="slider" id="light1"></p>
-
-									</div>
-										  <!-- ... repeat for other lights ... -->
-
-
-										  <!-- Light Control Buttons -->
-
-										<div class="custom-control custom-switch">
-								  <input type="checkbox" class="custom-control-input" id="customSwitch1">
-								  <label class="custom-control-label" for="customSwitch1" id="switchLabel">Off</label>
-								</div>
-
-								<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-								<script>
-								$(document).ready(function(){
-								  $("#customSwitch1").change(function(){
-									if(this.checked) {
-									  $("#switchLabel").text("On");
-									} else {
-									  $("#switchLabel").text("Off");
-									}
-								  });
-								});
-								</script>
+										<div class="light-switch">
+											
+											<input type="checkbox" class="btn-check" id="btn-check-2-outlined" checked autocomplete="off" onchange="toggleBrightness()">
+											<label class="btn btn-outline-success" for="btn-check-2-outlined">Kůlna lustr</label><br>
+											<input type="range" min="0" max="255" class="slider" id="dimmerSlider">
+		
 										</div>
-									  </div>
-									</div>
+							
+										<script>
+											    function toggleBrightness() {
+													var checkbox = document.getElementById('btn-check-2-outlined');
+													var slider = document.getElementById('dimmerSlider');
 
+													if (checkbox.checked) {
+														slider.value = 255; // Set brightness to maximum when checkbox is checked
+													} else {
+														slider.value = 0; // Set brightness to minimum when checkbox is unchecked
+													}											
+													saveSliderValue();
+												}
+
+											function updateLightingValue() {
+
+												$.get("/lighting-data", function(data) {
+													$("#dimmerSlider").val(data.value);
+												});
+											}
+										
+											function saveSliderValue() {
+											var checkbox = document.getElementById('btn-check-2-outlined');
+											var slider = document.getElementById('dimmerSlider');
+																						
+											if (slider.value > 10) {
+												checkbox.checked = true; // Check the checkbox if slider value is greater than 10
+											} else {
+												checkbox.checked = false; // Uncheck the checkbox if slider value is 10 or less
+											}
+
+											$.ajax({
+												url: "/lighting-data",
+												type: "POST",
+												contentType: "application/json",
+												data: JSON.stringify({ value: slider.value }),
+											});
+										}
+								
+											// Add an event listener to the slider to detect changes
+											$("#dimmerSlider").on("change", saveSliderValue);
+											setInterval(updateLightingValue, 5000);
+
+										</script>
+								</div>
+								</div>
+								</div>
+			
 									<!-- You can add more control sections for Cameras and Others here. -->
+
+
 								  </div>
 								</div>
 
@@ -214,6 +327,7 @@
 			<div id="bg"></div>
 
 		<!-- Scripts -->
+
 
             <script src="{{ url_for('static', filename='js/jquery.min.js') }}"></script>
             <script src="{{ url_for('static', filename='js/browser.min.js') }}"></script>
