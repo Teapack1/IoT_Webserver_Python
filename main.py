@@ -46,19 +46,17 @@ SENSORS = [
 ]
 
 CAMERAS = [
-#    Camera(id="c1", name="Garáže", rtsp='rtsp://169.254.0.99:554/live.sdp')
+    Camera(id="c1", name="Garáže", rtsp='rtsp://169.254.0.99:554/live.sdp'),
+    Camera(id="c2", name="Kůlna")
 ]
 
-LIGHTING_DATA = {
-    "intensity_01": 100,
-}
+LIGHTING_DATA = {}
 
 # ---------------------------------------------------------------------------------------------
 for index, camera in enumerate(CAMERAS):
     app.add_url_rule('/video_feed/' + camera.id,
                      'video_feed_' + camera.id,
                      (lambda camera: lambda: Response(camera.gen_frames(), mimetype='multipart/x-mixed-replace; boundary=frame'))(camera))
-
 
         
 @app.route('/')

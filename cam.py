@@ -7,13 +7,13 @@ import os
 import time
 
 class Camera:
-    def __init__(self, id, name, index = None, fps=1, save_duration=0.1, rtsp = None):
+    def __init__(self, id, name, index = 0, fps=1, save_duration=0.1, rtsp = None):
         self.name = name
         self.id = id
         self.fps = fps
         self.save_duration = save_duration
         if rtsp:
-            self.index = 'rtsp://169.254.0.99:554/live.sdp'
+            self.index = rtsp
         else:
             self.index = index
 
