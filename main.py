@@ -37,17 +37,21 @@ class Device(db.Model):
 # app.app_context().push()
 # db.create_all()
 
-
 # Define devices---------------------------------------------------------------------------------
 SENSORS = [
     Sensor("e1", "elektro spodní byt"),
     Sensor("e2", "elektro horní byt"),
-    Sensor("e3", "elektro čerpadlo"),
+    Sensor("e3", "elektro dílna"),
+    Sensor("e4", "elektro čerpadlo"),
+    Sensor("t1", "teplota spodní kuchyň"),
+    Sensor("t2", "teplota horní kuchyň"),
+    Sensor("t3", "teplota půda"),
+    Sensor("t4", "teplota venkovní"),
 ]
 
 CAMERAS = [
     Camera(id="c1", name="Garáže", rtsp='rtsp://169.254.0.99:554/live.sdp'),
-    Camera(id="c2", name="Kůlna")
+    Camera(id="c2", name="Kůlna", index=0)
 ]
 
 LIGHTING_DATA = {}
@@ -124,7 +128,7 @@ def post_plain():
         sensor = Sensor.find(SENSORS, device_id)
         sensor.update_values(device_values, device_units)
 
-# Add to database
+# Add keypoint to database from a Sensor
         device = Device(
             sensor_id=device_id,
             name=sensor.name,

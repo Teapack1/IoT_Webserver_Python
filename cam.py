@@ -71,8 +71,8 @@ class Sensor:
         self.id = id
         self.name = name
         self.time = datetime.now()
-        self.values = [0,0,0,0,0,0]  # store sensor values in a dictionary
-        self.units = [0,0,0,0,0,0]  # store sensor units in a dictionary
+        self.values = [None,None,None,None,None,None]  # store sensor values in a dictionary
+        self.units = [None,None,None,None,None,None]  # store sensor units in a dictionary
 
     def update_values(self, data, units):
         self.values = [round(float(d), 4) for d in data]

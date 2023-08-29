@@ -268,11 +268,13 @@
 										<div class="row">
 											<!-- Placeholder for Power Meters Chart -->
 											{% for thermo in t %}
-											<div class="col-sm-4">
+											<div class="col-sm-3">
 												<div class="card">
 													<div class="card-body">
 														<h5 class="card-title">{{ thermo.name }}</h5>
-														<p class="card-text">Aktuální hodnoty: {{ thermo.values }} {{ thermo.units }} </p>
+														{% for idx in range(thermo.values|length) %}
+														{{ thermo.values[idx] }} {{ thermo.units[idx] }}{% if not loop.last %}, {% endif %}
+														{% endfor %}
 													</div>
 												</div>
 											</div>
@@ -284,23 +286,30 @@
 										<div class="row">
 											<!-- Placeholder for Power Meters Chart -->
 											{% for elektro in e %}
-											<div class="col-sm-4">
+											<div class="col-sm-3">
 												<div class="card">
 													<div class="card-body">
 														<h5 class="card-title">{{ elektro.name }}</h5>
-														<p class="card-text">Aktuální hodnoty: {{ elektro.values }} {{ elektro.units }} </p>
+															{% for idx in range(elektro.values|length) %}
+															{{ elektro.values[idx] }} {{ elektro.units[idx] }}{% if not loop.last %}, {% endif %}
+															{% endfor %}
 													</div>
 												</div>
 											</div>
 											{% endfor %}
 										</div>
 
+										<!-- Světla -->
+										<h4 class="nadpis-sekce">Světla</h4>
+										<div class="row">
+										</div>
+																			
 										<!-- Kamery -->
 										<h4 class="nadpis-sekce">Kamery</h4>
 										<div class="row">
 											<!-- Placeholder for Power Meters Chart -->
 											{% for cam in cameras %}
-											<div class="col-sm-4">
+											<div class="col-sm-3">
 												<div class="card">
 													<div class="card-body">
 														<h5 class="card-title">{{ cam.name }}</h5>
