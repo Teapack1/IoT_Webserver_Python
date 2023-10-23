@@ -2,6 +2,7 @@ import cv2
 
 # Replace with your camera's RTSP URL
 rtsp_url = 'rtsp://169.254.0.99:554/live.sdp'
+rtsp_url = 0
 
 # Create a VideoCapture object
 cap = cv2.VideoCapture(rtsp_url)

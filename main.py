@@ -86,29 +86,40 @@ def home():
     return render_template('index.html', t=thermo, e=ele, graphJSON_1=graphJSON_1, graphJSON_2=graphJSON_2, graphJSON_3=graphJSON_3, cameras=CAMERAS)
 
 
-@app.route('/lighting-data/<light_id>', methods=['POST', 'GET'])
-def receive_data(light_id):
+@app.route('/lighting-data/', methods=['POST', 'GET'])
+def receive_data():
     global LIGHTING_DATA
     print(LIGHTING_DATA)
 
     try:
         if request.method == 'POST':
+            address_value = request.json.get('address')
             intensity_value = request.json.get('value')
+
             if intensity_value is None:
                 return jsonify({"error": "Value not provided"}), 400
+            if address_value is None:
+                return jsonify({"error": "Address not provided"}), 400
+            address_value = int(address_value)
 
-            LIGHTING_DATA[light_id] = intensity_value
+            LIGHTING_DATA[address_value] = intensity_value
 
-            response = requests.post(f"http://127.0.0.1:1880/{light_id}", json={"value": intensity_value}, timeout=1)
+            response = requests.post(f"http://127.0.0.1:1880/", json={"daliData_flask":[address_value, intensity_value]}, timeout=1)
             response.raise_for_status()
 
-            return jsonify({"value": intensity_value}), 200
+            return jsonify({"address": address_value, "value": intensity_value}), 200
         
         elif request.method == 'GET':
-            intensity_value = LIGHTING_DATA.get(light_id, 0)
-            return jsonify({"value": intensity_value}), 200
+            address_value = request.args.get('address')
+            if not address_value:
+                return jsonify({"error": "Address not provided"}), 400
+            address_value = int(address_value)
+            intensity_value = LIGHTING_DATA.get(address_value, 0)
+
+            return jsonify({"address": address_value, "value": intensity_value}), 200
     
     except requests.RequestException as e:
+        print("debug")
         return jsonify({"error": str(e)}), 500
 
 
@@ -148,6 +159,5 @@ def post_plain():
         return jsonify({'message': 'Missing data'}), 400
 
 
-
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(host='localhost', port=5000, debug=True)

@@ -96,9 +96,9 @@
     <div class="card">
         <div class="card-body">
             <div class="light-switch">
-                <input type="checkbox" class="btn-check light-toggle" id="light1-toggle" data-light="light1" onchange="toggleBrightness(this)">
+                <input type="checkbox" class="btn-check light-toggle" id="light1-toggle" data-light="0" onchange="toggleBrightness(this)">
                 <label class="btn btn-outline-success" for="light1-toggle">kůlna lustr</label><br>
-                <input type="range" min="0" max="254" class="slider light-slider" id="light1-slider" data-light="light1">
+                <input type="range" min="0" max="254" class="slider light-slider" id="light1-slider" data-light="0">
             </div>
         </div>
     </div>
@@ -109,9 +109,9 @@
     <div class="card">
         <div class="card-body">
             <div class="light-switch">
-                <input type="checkbox" class="btn-check light-toggle" id="light2-toggle" data-light="light2" onchange="toggleBrightness(this)">
+                <input type="checkbox" class="btn-check light-toggle" id="light2-toggle" data-light="1" onchange="toggleBrightness(this)">
                 <label class="btn btn-outline-success" for="light2-toggle">kůlna trámky</label><br>
-                <input type="range" min="0" max="254" class="slider light-slider" id="light2-slider" data-light="light2">
+                <input type="range" min="0" max="254" class="slider light-slider" id="light2-slider" data-light="1">
             </div>
         </div>
     </div>
@@ -122,9 +122,9 @@
     <div class="card">
         <div class="card-body">
             <div class="light-switch">
-                <input type="checkbox" class="btn-check light-toggle" id="light3-toggle" data-light="light3" onchange="toggleBrightness(this)">
+                <input type="checkbox" class="btn-check light-toggle" id="light3-toggle" data-light="2" onchange="toggleBrightness(this)">
                 <label class="btn btn-outline-success" for="light3-toggle">kůlna pásek</label><br>
-                <input type="range" min="0" max="254" class="slider light-slider" id="light3-slider" data-light="light3">
+                <input type="range" min="0" max="254" class="slider light-slider" id="light3-slider" data-light="2">
             </div>
         </div>
     </div>
@@ -141,40 +141,42 @@
         saveSliderValue(slider);
     }
 
-    function updateLightingValue(slider) {
-        let lightId = $(slider).data('light');
-        $.get(`/lighting-data/${lightId}`, function(data) {
-            $(slider).val(data.value);
-        });
+	function updateLightingValue(slider) {
+		let address = $(slider).data('light');
+		$.get(`/lighting-data`, { address: address }, function(data) {
+			if (data.address === address) {
+				$(slider).val(data.value);
+			}
+		});
     }
 
     function saveSliderValue(slider) {
-        let lightId = $(slider).data('light');
-        let checkbox = $(slider).siblings('.light-toggle')[0];
-        if (slider.value > 10) {
-            checkbox.checked = true;
-        } else {
-            checkbox.checked = false;
-        }
-        $.ajax({
-            url: `/lighting-data/${lightId}`,
-            type: "POST",
-            contentType: "application/json",
-            data: JSON.stringify({ value: slider.value }),
-        });
+		let address = $(slider).data('light');
+		let checkbox = $(slider).siblings('.light-toggle')[0];
+		if (slider.value > 10) {
+			checkbox.checked = true;
+		} else {
+			checkbox.checked = false;
+		}
+		$.ajax({
+			url: `/lighting-data`,
+			type: "POST",
+			contentType: "application/json",
+			data: JSON.stringify({ address: address, value: slider.value }),
+		});
     }
 
-    $(document).ready(function() {
-        $(".light-slider").on("change", function() {
-            saveSliderValue(this);
-        });
-
-        setInterval(function() {
-            $(".light-slider").each(function() {
-                updateLightingValue(this);
-            });
-        }, 5000);
-    });
+	$(document).ready(function() {
+		$(".light-slider").on("change", function() {
+			saveSliderValue(this);
+		});
+	
+		setInterval(function() {
+			$(".light-slider").each(function() {
+				updateLightingValue(this);
+			});
+		}, 5000);
+	});
 </script>
 
 									<!--	
