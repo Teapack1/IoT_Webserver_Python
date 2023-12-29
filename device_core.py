@@ -2,31 +2,41 @@ import cv2
 from datetime import datetime, timedelta
 from plotly.subplots import make_subplots
 import plotly.graph_objects as go
-import json
+import threading
 import os
 import time
 
 class Camera:
-    def __init__(self, id, name, index = 0, fps=1, save_duration=0.1, rtsp = None):
+    def __init__(self, id, name, index=0, fps=1, save_duration=0.1, rtsp=None):
         self.name = name
         self.id = id
         self.fps = fps
         self.save_duration = save_duration
-        if rtsp:
-            self.index = rtsp
-        else:
-            self.index = index
+        self.index = rtsp if rtsp else index
 
-        self.cap = cv2.VideoCapture(self.index)
-        self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1980)
-        self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
-        self.cap.set(cv2.CAP_PROP_FPS, self.fps)  # Set frame rate to fps
-        #if not self.cap.isOpened():
-        #    raise Exception("Could not open video device")
-        self.frame_width = int(self.cap.get(3))
-        self.frame_height = int(self.cap.get(4))
+        # Initialize camera in a separate thread to avoid blocking
+        self.cap = None
+        self.frame_width = 1980
+        self.frame_height = 720
         self.frame_count = 0
         self.start_time = time.time()
+        self.initialization_thread = threading.Thread(target=self.initialize_camera)
+        self.initialization_thread.start()
+
+    def initialize_camera(self):
+        self.cap = cv2.VideoCapture(self.index)
+        self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, self.frame_width)
+        self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, self.frame_height)
+        self.cap.set(cv2.CAP_PROP_FPS, self.fps)
+
+        # Wait for camera to open or timeout after 10 seconds
+        start_time = time.time()
+        while not self.cap.isOpened():
+            time.sleep(0.1)
+            if time.time() - start_time > 10:  # 10 seconds timeout
+                print(f"Timeout: Unable to open camera {self.id} - {self.name}")
+                break
+
 
     def save_frame(self, frame):
         filename = "video/frames/frame_{}.jpg".format(self.frame_count)
@@ -45,6 +55,9 @@ class Camera:
 
     def gen_frames(self):
         i = 0
+        if not self.cap or not self.cap.isOpened():
+            yield b''  # Return empty bytes if camera is not available
+            return
         while True:
             success, frame = self.cap.read()
             if not success:
@@ -91,7 +104,7 @@ class Sensor:
         now = datetime.now()
 
         # Calculate the date and time 10 days ago
-        ten_days_ago = now - timedelta(days=60)
+        ten_days_ago = now - timedelta(days=300)
 
         # Query the database for records from the last 10 days
 

@@ -254,7 +254,7 @@
 
 											<h3>{{ camera.name }}</h3>
 																		<div class="video-container">
-											<img class="camera-feed" src="{{ url_for('video_feed_' + camera.id) }}" alt="" onclick="zoomImage(this)">
+											<img class="camera-feed" src="{{ url_for('camera_blueprint.stream_camera', camera_id=camera.id) }}" alt="" onclick="zoomImage(this)">
 										</div>
 									{% endfor %}
 							</article>
@@ -310,12 +310,12 @@
 										<h4 class="nadpis-sekce">Kamery</h4>
 										<div class="row">
 											<!-- Placeholder for Power Meters Chart -->
-											{% for cam in cameras %}
+											{% for camera in cameras %}
 											<div class="col-sm-3">
 												<div class="card">
 													<div class="card-body">
-														<h5 class="card-title">{{ cam.name }}</h5>
-														<img class="video-mini" src="{{ url_for('video_feed_' + cam.id) }}" alt="">
+														<h5 class="card-title">{{ camera.name }}</h5>
+														<img class="video-mini" src=" {{ url_for('camera_blueprint.stream_camera', camera_id=camera.id) }} " alt="">
 													</div>
 												</div>
 											</div>
