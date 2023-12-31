@@ -15,6 +15,7 @@ class Camera:
         self.index = rtsp if rtsp else index
 
         # Initialize camera in a separate thread to avoid blocking
+        self.out = None
         self.cap = None
         self.frame_width = 1980
         self.frame_height = 720
@@ -45,12 +46,12 @@ class Camera:
 
     def create_video_from_frames(self):
         filename = "video/outpy_{}.mp4".format(time.strftime("%Y%m%d-%H%M%S"))
-        out = cv2.VideoWriter(filename, cv2.VideoWriter_fourcc(*'mp4v'), self.fps, (self.frame_width, self.frame_height))
+        self.out = cv2.VideoWriter(filename, cv2.VideoWriter_fourcc(*'mp4v'), self.fps, (self.frame_width, self.frame_height))
         for i in range(self.frame_count):
             frame = cv2.imread("video/frames/frame_{}.jpg".format(i))
-            out.write(frame)
+            self.out.write(frame)
             os.remove("video/frames/frame_{}.jpg".format(i))
-        out.release()
+        self.out.release()
         self.frame_count = 0
 
     def gen_frames(self):
@@ -75,8 +76,12 @@ class Camera:
                     self.start_time = time.time()
 
     def close_camera(self):
-        self.cap.release()
-        self.out.release()
+        try:
+            self.cap.release()
+        except: print("No camera to release")
+        try:
+            self.out.release()
+        except: print("No video to release")
 
 
 class Sensor:
@@ -84,8 +89,9 @@ class Sensor:
         self.id = id
         self.name = name
         self.time = datetime.now()
-        self.values = [None,None,None,None,None,None]  # store sensor values in a dictionary
-        self.units = [None,None,None,None,None,None]  # store sensor units in a dictionary
+        self.measurement = ["Spotřeba","Napětí","Výkon","Teplota","Vlhkost","Vlhkost"]
+        self.values = [12,None,50,None,None,None]  # store sensor values in a dictionary
+        self.units = ["A","V","D",None,None,None]  # store sensor units in a dictionary
 
     def update_values(self, data, units):
         self.values = [round(float(d), 4) for d in data]
@@ -99,7 +105,7 @@ class Sensor:
                 return device
         return None  # device not found
 
-    def plot(self, Db_class):
+    def plot(self, Db_class, title = "graph"):
         # Get the current date and time
         now = datetime.now()
 
@@ -129,13 +135,15 @@ class Sensor:
 
         fig.update_layout(
             autosize=True,
-            title='Spotřeba elektřiny spodní byt',
+            title=title,
+            width=1200,
+            height=512,
             margin=dict(
-                l=80,
+                l=40,
                 r=20,
                 b=20,
                 t=60,
-                pad=4
+                pad=2
             ),
             paper_bgcolor='#F5F5F5',
             plot_bgcolor='#FFFFFF'

@@ -8,18 +8,14 @@ import plotly
 sensor_blueprint = Blueprint('sensor_blueprint', __name__, template_folder='templates')
 camera_blueprint = Blueprint('camera_blueprint', __name__, template_folder='templates')
 
-@sensor_blueprint.route('/sensor/<sensor_id>')
-def sensor_data(sensor_id):
+@sensor_blueprint.route('/plot/<sensor_id>')
+def generate_plot(sensor_id):
     sensor = Sensor.find(SENSORS, sensor_id)  # Assuming SENSORS is accessible here
     if not sensor:
         return jsonify({"error": "Sensor not found"}), 404
 
-    plot_data = sensor.plot(Device)
-    graphJSON = json.dumps(plot_data, cls=plotly.utils.PlotlyJSONEncoder)
-
-    return render_template('sensor_data.html', graphJSON=graphJSON)
-
-# Additional routes can be defined here
+    fig = sensor.plot(Device, title=sensor.name)
+    return json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
 
 
 @sensor_blueprint.route('/postplain/', methods=['POST'])
@@ -72,3 +68,18 @@ def stream_camera(camera_id):
     
     return Response(camera.gen_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
 
+
+@camera_blueprint.route('/refresh_camera')
+def refresh_camera():
+    success = True
+    message = "All cameras refreshed successfully."
+    
+    for cam in CAMERAS:
+        cam.close_camera()
+        try:
+            cam.__init__(cam.id, cam.name, cam.index)
+        except:
+            success = False
+            message = "Error occurred while refreshing cameras."
+            
+    return jsonify({"success": success, "message": message})

@@ -28,25 +28,12 @@ app.register_blueprint(camera_blueprint, url_prefix='/cameras')
         
 @app.route('/')
 def home():
-    def generate_sensor_plot(sensor_id, title):
-        sensor = Sensor.find(SENSORS, sensor_id)
-        if sensor:
-            fig = sensor.plot(Device)
-            fig.update_layout(title=title)
-            return json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
-        return None
-
-    # Generate plots for specific sensors
-    graphJSON_1 = generate_sensor_plot("e1", 'Spotřeba elektřiny spodní byt')
-    graphJSON_2 = generate_sensor_plot("e2", 'Spotřeba elektřiny horní byt')
-    graphJSON_3 = generate_sensor_plot("e3", 'Spotřeba elektřiny čerpadlo')
-
     # Filter sensors based on their types
     thermo = [sensor for sensor in SENSORS if sensor.id.startswith('t')]
     ele = [sensor for sensor in SENSORS if sensor.id.startswith('e')]
 
     # Render the index template with the plot data and sensor lists
-    return render_template('index.html', t=thermo, e=ele, graphJSON_1=graphJSON_1, graphJSON_2=graphJSON_2, graphJSON_3=graphJSON_3, cameras=CAMERAS)
+    return render_template('index.html', thermo=thermo, ele=ele, cameras=CAMERAS)
 
 
 @app.route('/lighting-data/', methods=['POST', 'GET'])

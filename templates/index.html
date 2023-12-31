@@ -54,32 +54,22 @@
 						<!-- Elektroměr -->
 							<article id="elektrina">
 								<h2 class="major">Elektřina</h2>
-										<h5>Graf spotřeby ve spodním bytě</h5>
-											<div id="graph_1" class="graphs">
-											  <!-- Plotly chart will be drawn inside this div -->
-											</div>
-											<script>
-											  var graphs = {{graphJSON_1 | safe}};
-											  Plotly.newPlot('graph_1',graphs.data,graphs.layout, {responsive: true});
-											</script>
+								<script>
+									document.addEventListener('DOMContentLoaded', function() {
+										fetchAndPlotGraph('graph_1', 'e1', 'fullscreen-toggle' );
+										fetchAndPlotGraph('graph_2', 'e2', 'fullscreen-toggle-2');
+										fetchAndPlotGraph('graph_3', 'e3', 'fullscreen-toggle-3');
+									});
+								</script>
 
-										<h5>Graf spotřeby v horním bytě</h5>
-											<div id="graph_2" class="graphs">
-											  <!-- Plotly chart will be drawn inside this div -->
-											</div>
-											<script>
-											  var graphs = {{graphJSON_2 | safe}};
-											  Plotly.newPlot('graph_2',graphs.data,graphs.layout, {responsive: true});
-											</script>
+										<button id="fullscreen-toggle">Graf spotřeby ve spodním bytě</button>
+											<div id="graph_1" class="graphs"></div>
+											
+										<button id="fullscreen-toggle-2">Graf spotřeby v horním bytě</button>
+											<div id="graph_2" class="graphs"></div>
 
-										<h5>Graf spotřeby čerpadla</h5>
-											<div id="graph_3" class="graphs">
-											  <!-- Plotly chart will be drawn inside this div -->
-											</div>
-											<script>
-											  var graphs = {{graphJSON_3 | safe}};
-											  Plotly.newPlot('graph_3',graphs.data,graphs.layout, {responsive: true});
-											</script>
+										<button id="fullscreen-toggle-3">Graf spotřeby Čerpadla</button>
+											<div id="graph_3" class="graphs"></div>
 
 							</article>
 
@@ -250,6 +240,9 @@
 						<!-- Kamery -->
 							<article id="kamery">
 								<h2 class="major">Kamery</h2>
+
+									<button id="refresh-cameras-btn" class="top-right">Načíst Kamery</button>
+
 									{% for camera in cameras %}
 
 											<h3>{{ camera.name }}</h3>
@@ -269,14 +262,20 @@
 										<h4 class="nadpis-sekce">Teploměry</h4>
 										<div class="row">
 											<!-- Placeholder for Power Meters Chart -->
-											{% for thermo in t %}
+											{% for thermo in thermo %}
 											<div class="col-sm-3">
 												<div class="card">
 													<div class="card-body">
 														<h5 class="card-title">{{ thermo.name }}</h5>
 														{% for idx in range(thermo.values|length) %}
-														{{ thermo.values[idx] }} {{ thermo.units[idx] }}{% if not loop.last %}, {% endif %}
-														{% endfor %}
+														{% if thermo.values[idx] and thermo.values[idx] != 'None' %}
+															<div class="value-unit-pair">
+																<span class="measurement">{{ thermo.measurement[idx] }}:</span>
+																<span class="value">{{ thermo.values[idx] }}</span>
+																<span class="unit">{{ thermo.units[idx] }}</span>
+															</div>
+														{% endif %}
+													{% endfor %}
 													</div>
 												</div>
 											</div>
@@ -287,14 +286,20 @@
 										<h4 class="nadpis-sekce">Elektroměry</h4>
 										<div class="row">
 											<!-- Placeholder for Power Meters Chart -->
-											{% for elektro in e %}
+											{% for elektro in ele %}
 											<div class="col-sm-3">
 												<div class="card">
 													<div class="card-body">
 														<h5 class="card-title">{{ elektro.name }}</h5>
-															{% for idx in range(elektro.values|length) %}
-															{{ elektro.values[idx] }} {{ elektro.units[idx] }}{% if not loop.last %}, {% endif %}
-															{% endfor %}
+														{% for idx in range(elektro.values|length) %}
+														{% if elektro.values[idx] and elektro.values[idx] != 'None' %}
+															<div class="value-unit-pair">
+																<span class="measurement">{{ elektro.measurement[idx] }}:</span>
+																<span class="value">{{ elektro.values[idx] }}</span>
+																<span class="unit">{{ elektro.units[idx] }}</span>
+															</div>
+														{% endif %}
+													{% endfor %}
 													</div>
 												</div>
 											</div>
@@ -347,7 +352,6 @@
             <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 
 	    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz" crossorigin="anonymous"></script>
-
-
+			
 	</body>
 </html>

@@ -585,3 +585,81 @@
 	};
 
 })(jQuery);
+
+// Plotting Function
+
+function fetchAndPlotGraph(graphDivId, sensorId, fullscreenToggleId) {
+	const plotUrl = `/sensors/plot/${sensorId}`;
+	fetch(plotUrl)
+		.then(response => response.json())
+		.then(graphs => {
+			Plotly.newPlot(graphDivId, graphs.data, graphs.layout, {responsive: true});
+		})
+		.catch(error => console.error('Error:', error));
+
+	setupFullscreenToggle(graphDivId, fullscreenToggleId);
+
+}
+
+function setupFullscreenToggle(graphDivId, fullscreenToggleId) {
+	var divGraph = document.getElementById(graphDivId);
+	var btnFullScreenToggle = document.getElementById(fullscreenToggleId);
+
+	btnFullScreenToggle.addEventListener('click', function() {
+		toggleFullscreen(divGraph);
+	});
+
+	document.addEventListener('fullscreenchange', function() {
+		var isFullScreen = Boolean(document.fullscreenElement);
+		var update = {
+			width: isFullScreen ? window.innerWidth : 1200,
+			height: isFullScreen ? window.innerHeight : 512
+		};
+		Plotly.relayout(graphDivId, update);
+	});
+}
+
+function toggleFullscreen(element) {
+    if (!document.fullscreenElement) {
+        if (element.requestFullscreen) {
+            element.requestFullscreen();
+        } else if (element.mozRequestFullScreen) { /* Firefox */
+            element.mozRequestFullScreen();
+        } else if (element.webkitRequestFullscreen) { /* Chrome, Safari & Opera */
+            element.webkitRequestFullscreen();
+        } else if (element.msRequestFullscreen) { /* IE/Edge */
+            element.msRequestFullscreen();
+        }
+    } else {
+        if (document.exitFullscreen) {
+            document.exitFullscreen();
+        } else if (document.mozCancelFullScreen) { /* Firefox */
+            document.mozCancelFullScreen();
+        } else if (document.webkitExitFullscreen) { /* Chrome, Safari & Opera */
+            document.webkitExitFullscreen();
+        } else if (document.msExitFullscreen) { /* IE/Edge */
+            document.msExitFullscreen();
+        }
+    }
+}
+
+// Camera Refresh Function
+
+document.getElementById('refresh-cameras-btn').addEventListener('click', function() {
+	var refreshCameraUrl = '/cameras/refresh_camera';
+	fetch(refreshCameraUrl)
+		.then(response => response.json())
+		.then(data => {
+			if (data.success) {
+				
+				window.location.reload(); // Reload the page to reflect changes
+				alert("Cameras refreshed successfully.");
+			} else {
+				alert("Failed to refresh cameras.");
+			}
+		})
+		.catch(error => {
+			console.error('Error:', error);
+			alert("An error occurred.");
+		});
+});

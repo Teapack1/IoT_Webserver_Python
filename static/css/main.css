@@ -1710,3 +1710,33 @@ input[type=range]::-webkit-slider-runnable-track {
 text-align: center;
 }
 
+
+.top-right {
+    position: fixed;
+    top: 20%;    /* Adjust the value as needed */
+    right: 60%;  /* Adjust the value as needed */
+    /* Other styles for the button */
+}
+
+.card-body {
+    text-align: left;
+}
+
+.sensor-readings {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.reading {
+    margin: 5px 0;
+}
+
+.measurement, .value, .unit {
+    margin-right: 5px; /* Spacing between quantity, value, and unit */
+}
+
+.unit {
+    margin-right: 0; /* No extra margin after the unit */
+}
+
