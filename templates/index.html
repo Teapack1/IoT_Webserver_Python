@@ -78,7 +78,6 @@
 								<h2 class="major">Světla</h2>
 								<div class="container">
 
-
 								  <div class="row">
 											<h3 class="card-title">Kůlna</h3>
 <!-- Light 1 -->
@@ -121,53 +120,82 @@
 </div>
 
 <script>
-    function toggleBrightness(checkbox) {
-        let slider = $(checkbox).siblings('.light-slider')[0];
-        if (checkbox.checked) {
-            slider.value = 255;
-        } else {
-            slider.value = 0;
-        }
-        saveSliderValue(slider);
+    function newToggleLight(lightIdPrefix) {
+        // Select the corresponding checkbox in the original control
+        let checkbox = document.getElementById(lightIdPrefix + '-toggle');
+
+        // Toggle the checkbox state
+        checkbox.checked = !checkbox.checked;
+
+        // Trigger the onchange event of the checkbox to update the original control
+        $(checkbox).trigger('change');
     }
 
-	function updateLightingValue(slider) {
-		let address = $(slider).data('light');
-		$.get(`/lighting-data`, { address: address }, function(data) {
-			if (data.address === address) {
-				$(slider).val(data.value);
-			}
-		});
+    function toggleBrightness(checkbox) {
+        let slider = $(checkbox).siblings('.light-slider')[0];
+        slider.value = checkbox.checked ? 255 : 0;
+        saveSliderValue(slider);
+
+        // Update the appearance of the new section button
+        let newButton = document.getElementById('new-' + checkbox.id.split('-')[0] + '-btn');
+        if (newButton) {
+            newButton.classList.toggle('btn-success', checkbox.checked);
+            newButton.classList.toggle('btn-outline-success', !checkbox.checked);
+        }
     }
 
     function saveSliderValue(slider) {
-		let address = $(slider).data('light');
-		let checkbox = $(slider).siblings('.light-toggle')[0];
-		if (slider.value > 10) {
-			checkbox.checked = true;
-		} else {
-			checkbox.checked = false;
-		}
-		$.ajax({
-			url: `/lighting-data`,
-			type: "POST",
-			contentType: "application/json",
-			data: JSON.stringify({ address: address, value: slider.value }),
-		});
+        let address = $(slider).data('light');
+        let checkbox = $(slider).siblings('.light-toggle')[0];
+        if (slider.value > 10) {
+            checkbox.checked = true;
+        } else {
+            checkbox.checked = false;
+        }
+        $.ajax({
+            url: `/lighting-data`,
+            type: "POST",
+            contentType: "application/json",
+            data: JSON.stringify({ address: address, value: slider.value }),
+        });
     }
 
-	$(document).ready(function() {
-		$(".light-slider").on("change", function() {
-			saveSliderValue(this);
-		});
-	
-		setInterval(function() {
-			$(".light-slider").each(function() {
-				updateLightingValue(this);
-			});
-		}, 5000);
-	});
+    $(document).ready(function() {
+        $(".light-slider").on("change", function() {
+            saveSliderValue(this);
+        });
+
+        $(".light-toggle").on("change", function() {
+            toggleBrightness(this);
+        });
+
+        setInterval(function() {
+            $(".light-slider").each(function() {
+                updateLightingValue(this);
+            });
+        }, 5000);
+    });
+
+    function updateLightingValue(slider) {
+        let address = $(slider).data('light');
+        $.get(`/lighting-data`, { address: address }, function(data) {
+            if (data.address === address) {
+                $(slider).val(data.value);
+
+                let checkbox = $(slider).siblings('.light-toggle')[0];
+                let isChecked = data.value > 0;
+                checkbox.checked = isChecked;
+
+                let newButton = document.getElementById('new-' + checkbox.id.split('-')[0] + '-btn');
+                if (newButton) {
+                    newButton.classList.toggle('btn-success', isChecked);
+                    newButton.classList.toggle('btn-outline-success', !isChecked);
+                }
+            }
+        });
+    }
 </script>
+
 
 									<!--	
 									<div class="col-sm-4">
@@ -308,7 +336,19 @@
 
 										<!-- Světla -->
 										<h4 class="nadpis-sekce">Světla</h4>
-										<div class="row">
+										<div class="container">
+											<div class="row">
+												<div class="col-sm-4">
+													<button class="btn btn-outline-success" id="new-light1-btn" onclick="newToggleLight('light1')">Kůlna Lustr</button>
+												</div>
+												<div class="col-sm-4">
+													<button class="btn btn-outline-success" id="new-light2-btn" onclick="newToggleLight('light2')">Kůlna Trámky</button>
+												</div>
+												<div class="col-sm-4">
+													<button class="btn btn-outline-success" id="new-light3-btn" onclick="newToggleLight('light3')">Kůlna Pásek</button>
+												</div>
+
+											</div>
 										</div>
 																			
 										<!-- Kamery -->
@@ -334,7 +374,8 @@
 
 				<!-- Footer -->
 					<footer id="footer">
-						<p class="copyright">&copy; Untitled. Design: <a href="https://html5up.net">HTML5 UP</a>.</p>
+						<p class="copyright">&copy; 2023 Ondrej Major </p>
+						<p class="copyright"><a href="https://github.com/Teapack1/IoT_Webserver_Python">APP</a>|<a href="https://html5up.net">design</a></p>
 					</footer>
 
 			</div>

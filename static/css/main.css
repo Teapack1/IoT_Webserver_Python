@@ -1740,3 +1740,12 @@ text-align: center;
     margin-right: 0; /* No extra margin after the unit */
 }
 
+.btn-square {
+    width: 50px; /* Set the width of the button */
+    height: 50px; /* Set the height of the button */
+    margin: 5px;
+    padding: 0;
+    line-height: 50px; /* Center the text vertically */
+    text-align: center;
+    border-radius: 5px; /* Optional: if you want rounded corners */
+}
