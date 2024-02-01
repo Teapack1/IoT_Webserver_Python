@@ -14,7 +14,7 @@ SENSORS = [
 
 CAMERAS = [
     #Camera(id="c1", name="Garáže", rtsp='rtsp://169.254.0.99:554/live.sdp'),
-    Camera(id="c2", name="Kůlna", index=0)
+    #Camera(id="c2", name="Kůlna", index=0)
 ]
 
 LIGHTING_DATA = {}
